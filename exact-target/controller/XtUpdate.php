@@ -7,12 +7,7 @@
  * @subpackage exact-target
  * @todo       test with subscriber key feature
  */
-class XtUpdate {
-
-	/**
-	 * @var string
-	 */
-	protected $pluginDir = '';
+class XtUpdate extends WpBaseController {
 
 	/**
 	 * @var XtSubscriber
@@ -43,16 +38,12 @@ class XtUpdate {
 	 * constructor
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $pluginDir
 	 */
-	function __construct( $pluginDir )
+	function __construct()
 	{
-		$this->pluginDir = $pluginDir;
+		parent::__construct();
 
-		// exact target subscriber
-		require_once $pluginDir . '/inc/XtSubscriber.php';
-
-		$xtApi    = $pluginDir . '/inc/exact_target_api/exacttarget_soap_client.php';
+		$xtApi    = $this->modelPath . 'exact_target_api/exacttarget_soap_client.php';
 		$username = get_option( 'xt_username' );
 		$password = get_option( 'xt_password' );
 		$this->subscriber = new XtSubscriber( $xtApi, $username, $password );
@@ -63,8 +54,8 @@ class XtUpdate {
 		$this->pushProfileUpdates   = (bool)get_option( 'xt_push_user_profile_updates' );
 
 		// update user
-		add_action( 'user_register', array( $this, 'register_user' ), 10, 1 );
-		add_action( 'profile_update', array( $this, 'update_profile' ), 10, 2 );
+		add_action( 'user_register', array( $this, 'registerUser' ), 10, 1 );
+		add_action( 'profile_update', array( $this, 'updateProfile' ), 10, 2 );
 	}
 
 	/**
@@ -73,19 +64,19 @@ class XtUpdate {
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   int $id
 	 */
-	public function register_user( $id ) {
+	public function registerUser( $id ) {
 
 		$this->_pushUserData( $id );
 	}
 
 	/**
-	 * update_profile
+	 * update profile
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   int $id
 	 * @param   object $oldUser raw user object not a WP_User
 	 */
-	public function update_profile( $id, $oldUser ) {
+	public function updateProfile( $id, $oldUser ) {
 
 		if ( $this->pushProfileUpdates ) {
 

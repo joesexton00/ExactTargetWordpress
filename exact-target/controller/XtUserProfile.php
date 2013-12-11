@@ -6,33 +6,27 @@
  * @package    WordPress
  * @subpackage exact-target
  */
-class XtUserProfile {
-
-	/**
-	 * @var string
-	 */
-	protected $pluginDir = '';
+class XtUserProfile extends WpBaseController {
 
 	/**
 	 * constructor
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $pluginDir
 	 */
-	function __construct( $pluginDir )
+	function __construct()
 	{
-		$this->pluginDir = $pluginDir;
+		parent::__construct();
 
 		$this->subscriberKeyEnabled = (bool)get_option( 'xt_subscriber_key_enabled' );
 
 		// show admin profile
-		add_action( 'show_user_profile', array( $this, 'render_profile_fields' ) );
-		add_action( 'edit_user_profile', array( $this, 'render_profile_fields' ) );
+		add_action( 'show_user_profile', array( $this, 'renderProfileFields' ) );
+		add_action( 'edit_user_profile', array( $this, 'renderProfileFields' ) );
 
 		// save admin profile
-		add_action( 'user_profile_update_errors', array( $this, 'validate_user_profile_fields' ), 10, 3 );
-		add_action( 'edit_user_profile_update', array( $this, 'save_user_profile_fields' ) );
-		add_action( 'personal_options_update', array( $this, 'save_user_profile_fields' ) );
+		add_action( 'user_profile_update_errors', array( $this, 'validateUserProfileFields' ), 10, 3 );
+		add_action( 'edit_user_profile_update', array( $this, 'saveUserProfileFields' ) );
+		add_action( 'personal_options_update', array( $this, 'saveUserProfileFields' ) );
 	}
 
 	/**
@@ -41,23 +35,23 @@ class XtUserProfile {
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   WP_User $user
 	 */
-	public function render_profile_fields( WP_User $user ) {
+	public function renderProfileFields( WP_User $user ) {
 
 		if ( $this->subscriberKeyEnabled ) {
 
-			include( $this->pluginDir.'/views/extra_profile_fields.php' );
+			$this->render( 'extra_profile_fields', array( 'user' => $user ) );
 		}
 	}
 
 	/**
-	 * validate profile form fields
+	 * validate user profile fields
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   WP_Error $errors
 	 * @param   boolean $update
 	 * @param   object $user raw user object not a WP_User
 	 */
-	public function validate_user_profile_fields( WP_Error &$errors, $update, &$user )
+	public function validateUserProfileFields( WP_Error &$errors, $update, &$user )
 	{
 		if ( ! $this->subscriberKeyEnabled ) {
 
@@ -77,7 +71,7 @@ class XtUserProfile {
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   int $id
 	 */
-	public function save_user_profile_fields( $id ) {
+	public function saveUserProfileFields( $id ) {
 
 		if ( !current_user_can( 'edit_user', $id ) ){
 

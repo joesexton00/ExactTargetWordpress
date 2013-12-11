@@ -7,12 +7,10 @@ Author: MoCo, Inc.
 Author URI: http://www.bigideas.com
 */
 
-define( 'XT_FILE_PATH', plugin_dir_path(__FILE__) );
+$dir = plugin_dir_path( __FILE__ );
+$url = plugin_dir_url( __FILE__ );
+require_once $dir . '/framework/WpClassLoader.php';
 
-require_once XT_FILE_PATH . '/inc/XtAdmin.php';
-require_once XT_FILE_PATH . '/inc/XtUserProfile.php';
-require_once XT_FILE_PATH . '/inc/XtUpdate.php';
-
-$xtAdmin       = new XtAdmin( XT_FILE_PATH );
-$xtUserProfile = new XtUserProfile( XT_FILE_PATH );
-$xtUpdate      = new XtUpdate( XT_FILE_PATH );
+global $wpClassLoader;
+$wpClassLoader = new WpClassLoader( $dir, $url );
+$wpClassLoader->initControllers();

@@ -6,29 +6,20 @@
  * @package    WordPress
  * @subpackage exact-target
  */
-class XtAdmin {
-
-	/**
-	 * @var string
-	 */
-	protected $pluginDir = '';
+class XtAdmin extends WpBaseController {
 
 	/**
 	 * constructor
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $pluginDir
 	 */
-	function __construct( $pluginDir )
+	function __construct()
 	{
-		$this->pluginDir = $pluginDir;
+		parent::__construct();
 
-		register_activation_hook( __FILE__, array( $this, 'on_activation' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'on_deactivation' ) );
-
-		add_action( 'admin_menu', array( $this, 'add_admin_menu_page' ) );
-		add_action( 'admin_init', array( $this, 'admin_settings_init' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'admin_menu', array( $this, 'addAdminMenuPage' ) );
+		add_action( 'admin_init', array( $this, 'adminSettingsInit' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
 	}
 
 	/**
@@ -36,7 +27,7 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function on_activation() {
+	public function onActivation() {
 
 		// add options
 		add_option( 'xt_username' );
@@ -63,7 +54,7 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function on_deactivation() {
+	public function onDeactivation() {
 
 		// remove options ?
 		// delete_option( 'xt_username' );
@@ -90,10 +81,11 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	function enqueue_scripts() {
+	function enqueueScripts() {
 
-		wp_register_script( 'xt-admin-script', plugin_dir_url( __FILE__ ) . '../assets/js/admin.js', array( 'jquery' ), 'alpha', true );
-		wp_enqueue_script( 'xt-admin-script' );
+		$this->enqueueScript( 'xt-admin-script', 'admin' );
+		// wp_register_script( 'xt-admin-script', plugin_dir_url( __FILE__ ) . '../assets/js/admin.js', array( 'jquery' ), 'alpha', true );
+		// wp_enqueue_script( 'xt-admin-script' );
 	}
 
 	/**
@@ -101,9 +93,9 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function add_admin_menu_page(){
+	public function addAdminMenuPage(){
 
-	    add_options_page( 'Exact Target User Integration', 'Exact Target', 'manage_options', 'xt-admin', array( $this, 'render_admin_page' ) );
+	    add_options_page( 'Exact Target User Integration', 'Exact Target', 'manage_options', 'xt-admin', array( $this, 'renderAdminPage' ) );
 	}
 
 	/**
@@ -111,13 +103,13 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function render_admin_page() {
+	public function renderAdminPage() {
 
 		if ( !current_user_can( 'manage_options' ) ) {
 			wp_die( 'You do not have sufficient permissions to access this page.' );
 		}
 
-		include_once( $this->pluginDir . 'views/admin.php' );
+		$this->render( 'admin' );
 	}
 
 	/**
@@ -125,85 +117,85 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function admin_settings_init() {
+	public function adminSettingsInit() {
 
 		// register options
-		register_setting( 'exact_target', 'xt_username', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_password', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_mailing_lists', array( $this, 'validate_mailing_list_fields' ) );
+		register_setting( 'exact_target', 'xt_username', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_password', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_mailing_lists', array( $this, 'validateMailingListFields' ) );
 
-		register_setting( 'exact_target', 'xt_attribute_id', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_username', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_email', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_first_name', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_last_name', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_display_name', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_nice_name', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_nickname', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_description', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_url', array( $this, 'sanitize_input_field' ) );
-		register_setting( 'exact_target', 'xt_attribute_registered', array( $this, 'sanitize_input_field' ) );
+		register_setting( 'exact_target', 'xt_attribute_id', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_username', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_email', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_first_name', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_last_name', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_display_name', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_nice_name', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_nickname', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_description', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_url', array( $this, 'sanitizeInputField' ) );
+		register_setting( 'exact_target', 'xt_attribute_registered', array( $this, 'sanitizeInputField' ) );
 
 		register_setting( 'exact_target', 'xt_subscriber_key_enabled' );
 		register_setting( 'exact_target', 'xt_push_user_profile_updates' );
 
 		// add form sections
-		add_settings_section( 'xt_credentials', "Credentials", array( $this, 'render_credentials_section_text' ),  "xt-admin" );
-		add_settings_section( 'xt_mailing_lists', "Mailing Lists", array( $this, 'render_mailing_list_section_text' ),  "xt-admin" );
-		add_settings_section( 'xt_subscriber_attributes', "Subscriber Attributes", array( $this, 'render_attributes_section_text' ),  "xt-admin" );
+		add_settings_section( 'xt_credentials', "Credentials", array( $this, 'renderCredentialsSectionText' ),  "xt-admin" );
+		add_settings_section( 'xt_mailing_lists', "Mailing Lists", array( $this, 'renderMailingListSectionText' ),  "xt-admin" );
+		add_settings_section( 'xt_subscriber_attributes', "Subscriber Attributes", array( $this, 'renderAttributesSectionText' ),  "xt-admin" );
 		add_settings_section( 'xt_misc', "Miscellaneous", null,  "xt-admin" );
 
 		// add form fields
-		add_settings_field( 'xt_username', 'Username', array( $this, 'render_text_input' ),  "xt-admin", 'xt_credentials', array(
+		add_settings_field( 'xt_username', 'Username', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_credentials', array(
 			'slug'     => 'xt_username',
 			'required' => true
 		));
-		add_settings_field( 'xt_password', 'Password', array( $this, 'render_text_input' ),  "xt-admin", 'xt_credentials', array(
+		add_settings_field( 'xt_password', 'Password', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_credentials', array(
 			'slug'     => 'xt_password',
 			'required' => true
 		));
-		add_settings_field( 'xt_mailing_lists', 'Mailing List Ids', array( $this, 'render_mailing_list_inputs' ),  "xt-admin", 'xt_mailing_lists', array(
+		add_settings_field( 'xt_mailing_lists', 'Mailing List Ids', array( $this, 'renderMailingListInputs' ),  "xt-admin", 'xt_mailing_lists', array(
 			'slug' => 'xt_mailing_lists',
 		));
 
-		add_settings_field( 'xt_attribute_id', 'User ID', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_id', 'User ID', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_id',
 		));
-		add_settings_field( 'xt_attribute_username', 'Username', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_username', 'Username', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_username',
 		));
-		add_settings_field( 'xt_attribute_email', 'Email', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_email', 'Email', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_email',
 		));
-		add_settings_field( 'xt_attribute_first_name', 'First Name', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_first_name', 'First Name', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_first_name',
 		));
-		add_settings_field( 'xt_attribute_last_name', 'Last Name', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_last_name', 'Last Name', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_last_name',
 		));
-		add_settings_field( 'xt_attribute_display_name', 'Display Name', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_display_name', 'Display Name', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_display_name',
 		));
-		add_settings_field( 'xt_attribute_nice_name', 'Nice Name', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_nice_name', 'Nice Name', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_nice_name',
 		));
-		add_settings_field( 'xt_attribute_nickname', 'Nickname', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_nickname', 'Nickname', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_nickname',
 		));
-		add_settings_field( 'xt_attribute_description', 'Description', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_description', 'Description', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_description',
 		));
-		add_settings_field( 'xt_attribute_url', 'URL', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_url', 'URL', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_url',
 		));
-		add_settings_field( 'xt_attribute_registered', 'Registered', array( $this, 'render_text_input' ),  "xt-admin", 'xt_subscriber_attributes', array(
+		add_settings_field( 'xt_attribute_registered', 'Registered', array( $this, 'renderTextInput' ),  "xt-admin", 'xt_subscriber_attributes', array(
 			'slug'     => 'xt_attribute_registered',
 		));
-		add_settings_field( 'xt_subscriber_key_enabled', 'Use Subscriber Key', array( $this, 'render_checkbox_input' ),  "xt-admin", 'xt_misc', array(
+		add_settings_field( 'xt_subscriber_key_enabled', 'Use Subscriber Key', array( $this, 'renderCheckboxInput' ),  "xt-admin", 'xt_misc', array(
 			'slug'     => 'xt_subscriber_key_enabled',
 			'message'  => 'does your implementation of Exact Target use the subscriber key feature?'
 		));
-		add_settings_field( 'xt_push_user_profile_updates', 'Push Profile Updates to XT', array( $this, 'render_checkbox_input' ),  "xt-admin", 'xt_misc', array(
+		add_settings_field( 'xt_push_user_profile_updates', 'Push Profile Updates to XT', array( $this, 'renderCheckboxInput' ),  "xt-admin", 'xt_misc', array(
 			'slug'     => 'xt_push_user_profile_updates',
 			'message'  => 'if enabled, all user profile updates will be sent to Exact Target, if not enabled, user data will only be sent on user registration',
 		));
@@ -214,7 +206,7 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function render_credentials_section_text() {
+	public function renderCredentialsSectionText() {
 		echo "Enter the credentials for an Exat Target administrator with Web API privileges";
 	}
 
@@ -223,7 +215,7 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function render_mailing_list_section_text() {
+	public function renderMailingListSectionText() {
 		echo "Users will be automatically subscribed to these mailing lists when they are registered with Wordpress.";
 	}
 
@@ -232,7 +224,7 @@ class XtAdmin {
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	public function render_attributes_section_text() {
+	public function renderAttributesSectionText() {
 		echo "Enter the name of the Exact Target subscriber attribute that corresponds with each user property.  If the field is left blank the property will not be sent to Exact Target.";
 	}
 
@@ -242,7 +234,7 @@ class XtAdmin {
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   array $args
 	 */
-	public function render_text_input( $args ) {
+	public function renderTextInput( $args ) {
 		$slug = $args['slug'];
 
 		if ( isset( $args['required'] ) && $args['required'] === true ) {
@@ -262,7 +254,7 @@ class XtAdmin {
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   array $args
 	 */
-	public function render_mailing_list_inputs( $args ) {
+	public function renderMailingListInputs( $args ) {
 		$slug   = $args['slug'];
 		$fields = get_option($slug);
 
@@ -288,7 +280,7 @@ class XtAdmin {
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 * @param   array $args
 	 */
-	function render_checkbox_input( $args ) {
+	function renderCheckboxInput( $args ) {
 		$slug = $args['slug'];
 
  		echo '<input name="'.$slug.'" id="'.$slug.'" type="checkbox" value="1" ' . checked( 1, get_option( $slug ), false ) . ' >';
@@ -306,7 +298,7 @@ class XtAdmin {
 	 * @param   string $field
 	 * @return  string
 	 */
-	public function sanitize_input_field( $field ) {
+	public function sanitizeInputField( $field ) {
 
 		$field = filter_var( $field, FILTER_SANITIZE_STRING );
 
@@ -320,7 +312,7 @@ class XtAdmin {
 	 * @param   array $fields
 	 * @return  array
 	 */
-	public function validate_mailing_list_fields( $fields ) {
+	public function validateMailingListFields( $fields ) {
 
 		// remove empty mailing list fields
 		foreach ( $fields as $key => $val ) {
