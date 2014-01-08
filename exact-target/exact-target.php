@@ -9,8 +9,7 @@ Author URI: http://www.bigideas.com
 
 $dir = plugin_dir_path( __FILE__ );
 $url = plugin_dir_url( __FILE__ );
-require_once $dir . '/framework/WpClassLoader.php';
 
-global $wpClassLoader;
+require_once $dir . '/framework/WpClassLoader.php';
 $wpClassLoader = new WpClassLoader( $dir, $url );
-$wpClassLoader->initControllers();
+

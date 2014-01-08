@@ -5,7 +5,6 @@
  * @author     Joe Sexton <joe.sexton@bigideas.com>
  * @package    WordPress
  * @subpackage exact-target
- * @todo       test with subscriber key feature
  */
 class XtUpdate extends WpBaseController {
 
@@ -35,13 +34,11 @@ class XtUpdate extends WpBaseController {
 	protected $subscriberAttributes = array();
 
 	/**
-	 * constructor
+	 * init
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	function __construct()
-	{
-		parent::__construct();
+	function _init() {
 
 		$xtApi    = $this->modelPath . 'exact_target_api/exacttarget_soap_client.php';
 		$username = get_option( 'xt_username' );

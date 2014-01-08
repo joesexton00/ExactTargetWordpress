@@ -6,149 +6,168 @@
  * @author  Joe Sexton <joe.sexton@bigideas.com>
  */
 if (!class_exists( 'WpBaseController' )){
-class WpBaseController {
+	class WpBaseController {
 
-	/**
-	 * @var string
-	 */
-	protected $rootPath;
+		/**
+		 * @var string
+		 */
+		protected $rootPath;
 
-	/**
-	 * @var string
-	 */
-	protected $fwPath;
+		/**
+		 * @var string
+		 */
+		protected $fwPath;
 
-	/**
-	 * @var string
-	 */
-	protected $controllerPath;
+		/**
+		 * @var string
+		 */
+		protected $controllerPath;
 
-	/**
-	 * @var string
-	 */
-	protected $modelPath;
+		/**
+		 * @var string
+		 */
+		protected $modelPath;
 
-	/**
-	 * @var string
-	 */
-	protected $viewPath;
+		/**
+		 * @var string
+		 */
+		protected $viewPath;
 
-	/**
-	 * @var string
-	 */
-	protected $assetPath;
+		/**
+		 * @var string
+		 */
+		protected $assetPath;
 
-	/**
-	 * constructor
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $directory
-	 */
-	public function __construct()
-	{
-		global $wpClassLoader;
-		if ( $wpClassLoader ) {
-
-			$this->rootPath = $wpClassLoader->getRootPath();
-
-			$this->fwPath         = $wpClassLoader->getFwPath();
-			$this->controllerPath = $wpClassLoader->getControllerPath();
-			$this->modelPath      = $wpClassLoader->getModelPath();
-			$this->viewPath       = $wpClassLoader->getViewPath();
-			$this->assetPath      = $wpClassLoader->getAssetPath();
-
-		} else {
-			$this->rootPath = trailingslashit( dirname( __FILE__ ) );
+		/**
+		 * constructor
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 * @param   string $rootPath
+		 * @param   string $rootUrl
+		 */
+		public function __construct( $rootPath, $rootUrl )
+		{
+			$this->rootPath = $rootPath;
 
 			$this->fwPath         = $this->rootPath.'framework/';
 			$this->controllerPath = $this->rootPath.'controller/';
 			$this->modelPath      = $this->rootPath.'model/';
 			$this->viewPath       = $this->rootPath.'view/';
-			$this->assetPath      = plugin_dir_url( __FILE__ ).'assets/';
+			$this->assetPath      = $rootUrl.'assets/';
+
+			register_activation_hook( __FILE__, array( $this, 'onActivation' ) );
+			register_deactivation_hook( __FILE__, array( $this, 'onDeactivation' ) );
+
+			$this->_init();
 		}
 
-		register_activation_hook( __FILE__, array( $this, 'onActivation' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'onDeactivation' ) );
+		/**
+		 * enqueueScript
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 * @param   string $handle
+		 * @param   string $file
+		 * @param   array $deps
+		 * @param   string $ver
+		 * @param   boolean $footer
+		 * @param   array $localizedVars
+		 * @return  boolean
+		 */
+		public function enqueueScript( $handle, $script, $deps = array( 'jquery' ), $ver = null, $footer = true, $localizedVars = array() ) {
 
-		$this->_init();
-	}
+			$script = str_replace( ':', '/', $script );
+			$file = $this->assetPath . 'js/' . $script . '.js';
 
-	/**
-	 * enqueueScript
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $handle
-	 * @param   string $file
-	 * @param   array $deps
-	 * @param   string $ver
-	 * @param   boolean $footer
-	 * @param   array $localizedVars
-	 * @return  boolean
-	 */
-	public function enqueueScript( $handle, $script, $deps = array( 'jquery' ), $ver = null, $footer = true, $localizedVars = array() ) {
+			wp_register_script( $handle, $file, $deps, $ver, $footer );
+			wp_enqueue_script( $handle );
 
-		$script = str_replace( ':', '/', $script );
-		$file = $this->assetPath . 'js/' . $script . '.js';
+			foreach ( $localizedVars as $name => $vars ) {
 
-		wp_register_script( $handle, $file, $deps, $ver, $footer );
-		wp_enqueue_script( $handle );
-
-		foreach ( $localizedVars as $name => $vars ) {
-
-			wp_localize_script( $handle, $name, $vars );
-		}
-
-		return true;
-	}
-
-	/**
-	 * enqueueStyle
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $handle
-	 * @param   string $file
-	 * @param   array $deps
-	 * @param   string $ver
-	 * @param   boolean $media
-	 * @return  boolean
-	 */
-	public function enqueueStyle( $handle, $style, $deps = array(), $ver = null, $media = 'screen' ) {
-
-		$style = str_replace( ':', '/', $style );
-		$file = $this->assetPath . 'css/' . $style . '.css';
-
-		wp_register_style( $handle, $file, $deps, $ver, $media );
-		wp_enqueue_style( $handle );
-
-		return true;
-	}
-
-	/**
-	 * render view
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $view
-	 * @param   array $args
-	 * @param   boolean $echo
-	 * @return  string | boolean
-	 */
-	function render( $view, $args = array(), $echo = true ){
-
-		$view = str_replace( ':', '/', $view );
-		$file = $this->viewPath . $view . '.php';
-
-		if( !empty( $args ) )
-			extract( $args );
-
-		if ( !file_exists( $file ) )
-			return false;
-
-		if ( $echo ) {
-			include $file ;
+				wp_localize_script( $handle, $name, $vars );
+			}
 
 			return true;
+		}
 
-		} else {
+		/**
+		 * enqueueStyle
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 * @param   string $handle
+		 * @param   string $file
+		 * @param   array $deps
+		 * @param   string $ver
+		 * @param   boolean $media
+		 * @return  boolean
+		 */
+		public function enqueueStyle( $handle, $style, $deps = array(), $ver = null, $media = 'screen' ) {
+
+			$style = str_replace( ':', '/', $style );
+			$file = $this->assetPath . 'css/' . $style . '.css';
+
+			wp_register_style( $handle, $file, $deps, $ver, $media );
+			wp_enqueue_style( $handle );
+
+			return true;
+		}
+
+		/**
+		 * render view
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 * @param   string $view
+		 * @param   array $args
+		 * @param   boolean $echo
+		 * @return  string | boolean
+		 */
+		function render( $view, $args = array(), $echo = true ){
+
+			$view = str_replace( ':', '/', $view );
+			$file = $this->viewPath . $view . '.php';
+			$assetPath = $this->assetPath;
+
+			if( !empty( $args ) )
+				extract( $args );
+
+			if ( !file_exists( $file ) )
+				return false;
+
+			if ( $echo ) {
+				include $file ;
+
+				return true;
+
+			} else {
+				ob_start();
+				include $file;
+				$output = ob_get_contents();
+				ob_end_clean();
+
+				return $output;
+			}
+		}
+
+		/**
+		 * renderShortcode
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 * @param   string $file
+		 * @param   array $atts
+		 * @param   array $pairs
+		 * @param   string $shortcode
+		 * @return  string
+		 */
+		public function renderShortcode( $view, $atts, $pairs = array(), $shortcode = '' ) {
+
+			$view = str_replace( ':', '/', $view );
+			$file = $this->viewPath . $view . '.php';
+			$assetPath = $this->assetPath;
+
+			extract( shortcode_atts( $pairs, $atts, $shortcode ) );
+
+			if ( !file_exists( $file ) )
+				return false;
+
 			ob_start();
 			include $file;
 			$output = ob_get_contents();
@@ -156,54 +175,25 @@ class WpBaseController {
 
 			return $output;
 		}
-	}
 
-	/**
-	 * renderShortcode
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 * @param   string $file
-	 * @param   array $atts
-	 * @param   array $pairs
-	 * @param   string $shortcode
-	 * @return  string
-	 */
-	public function renderShortcode( $view, $atts, $pairs = array(), $shortcode = '' ) {
+		/**
+		 * add actions
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 */
+		protected function _init() {}
 
-		$view = str_replace( ':', '/', $view );
-		$file = $this->viewPath . $view . '.php';
+		/**
+		 * on activation
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 */
+		public function onActivation() {}
 
-		extract( shortcode_atts( $pairs, $atts, $shortcode ) );
-
-		if ( !file_exists( $file ) )
-			return false;
-
-		ob_start();
-		include $file;
-		$output = ob_get_contents();
-		ob_end_clean();
-
-		return $output;
-	}
-
-	/**
-	 * add actions
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 */
-	protected function _init() {}
-
-	/**
-	 * on activation
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 */
-	public function onActivation() {}
-
-	/**
-	 * on deactivation
-	 *
-	 * @author  Joe Sexton <joe.sexton@bigideas.com>
-	 */
-	public function onDeactivation() {}
-}}
+		/**
+		 * on deactivation
+		 *
+		 * @author  Joe Sexton <joe.sexton@bigideas.com>
+		 */
+		public function onDeactivation() {}
+	}}

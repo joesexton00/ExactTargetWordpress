@@ -9,13 +9,11 @@
 class XtAdmin extends WpBaseController {
 
 	/**
-	 * constructor
+	 * init
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	function __construct()
-	{
-		parent::__construct();
+	function _init() {
 
 		add_action( 'admin_menu', array( $this, 'addAdminMenuPage' ) );
 		add_action( 'admin_init', array( $this, 'adminSettingsInit' ) );

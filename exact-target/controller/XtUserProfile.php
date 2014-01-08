@@ -9,13 +9,11 @@
 class XtUserProfile extends WpBaseController {
 
 	/**
-	 * constructor
+	 * init
 	 *
 	 * @author  Joe Sexton <joe.sexton@bigideas.com>
 	 */
-	function __construct()
-	{
-		parent::__construct();
+	function _init() {
 
 		$this->subscriberKeyEnabled = (bool)get_option( 'xt_subscriber_key_enabled' );
 
